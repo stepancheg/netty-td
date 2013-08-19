@@ -8,8 +8,8 @@ import io.netty.channel.Channel;
 public class ChannelUtil {
 
     public static void writeAndFlush(Channel channel, Object message) {
-        channel.writeAndFlush(message);
-        //BetterWrite.write(channel, message, null);
+        //channel.writeAndFlush(message);
+        BetterWrite.write(channel, message, null);
     }
 
 }

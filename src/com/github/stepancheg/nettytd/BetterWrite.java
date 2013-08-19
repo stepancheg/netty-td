@@ -10,13 +10,14 @@ import io.netty.util.AttributeKey;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.ListIterator;
 
 /**
  * @author Stepan Koltsov
  */
 public class BetterWrite<T> {
 
-    private static AttributeKey<BetterWrite> KEY = new AttributeKey<>(BetterWrite.class.getName());
+    private static final AttributeKey<BetterWrite> KEY = new AttributeKey<>(BetterWrite.class.getName());
 
     private final Channel channel;
     private final LockFreeStackWithSize<QueueItem<T>> queue = new LockFreeStackWithSize<>();
@@ -40,7 +41,9 @@ public class BetterWrite<T> {
     private void flush() {
         while (tasks.fetchTask()) {
             List<QueueItem<T>> items = queue.removeAllReversed();
-            for (QueueItem<T> item : items) {
+            ListIterator<QueueItem<T>> iterator = items.listIterator(items.size());
+            while (iterator.hasPrevious()) {
+                QueueItem<T> item = iterator.previous();
                 ChannelFuture future = channel.write(item.item);
                 if (item.listener != null) {
                     future.addListener(item.listener);
