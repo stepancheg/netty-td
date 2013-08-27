@@ -10,6 +10,7 @@ public class ChannelUtil {
     public static void writeAndFlush(Channel channel, Object message) {
         //channel.writeAndFlush(message);
         BetterWrite.write(channel, message, null);
+        //BetterWriteWithAtomic.write(channel, message, null);
     }
 
 }

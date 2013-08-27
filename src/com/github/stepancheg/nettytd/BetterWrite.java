@@ -54,16 +54,26 @@ public class BetterWrite<T> {
     }
 
     public static <T> void write(Channel channel, T value, @Nullable ChannelFutureListener listener) {
-        Attribute<BetterWrite> attr = channel.attr(KEY);
-        BetterWrite<T> betterWriter = attr.get();
-        if (betterWriter == null) {
-            betterWriter = new BetterWrite<>(channel);
-            attr.set(betterWriter);
-        }
+        BetterWrite<T> betterWriter = getBetterWrite(channel);
 
         betterWriter.queue.add(new QueueItem<>(value, listener));
         if (betterWriter.tasks.addTask()) {
             channel.pipeline().lastContext().executor().execute(betterWriter::flush);
         }
     }
+
+    private static <T> BetterWrite<T> getBetterWrite(final Channel channel) {
+        final Attribute<BetterWrite> attr = channel.attr(KEY);
+        BetterWrite<T> betterWriter = attr.get();
+        if (betterWriter != null) {
+            return betterWriter;
+        }
+        final BetterWrite<T> value = new BetterWrite<>(channel);
+        final BetterWrite<T> old = attr.setIfAbsent(value);
+        if (old != null) {
+            return old;
+        }
+        return value;
+    }
+
 }
